@@ -1,4 +1,6 @@
 from typing import Optional
+import os
+import openai
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Response
 from starlette import status
@@ -25,8 +27,9 @@ from app.resources import strings
 from app.services.items import check_item_exists, get_slug_for_item
 from app.services.event import send_event
 
-router = APIRouter()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
+router = APIRouter()
 
 @router.get("", response_model=ListOfItemsInResponse, name="items:list-items")
 async def list_items(
@@ -75,10 +78,18 @@ async def create_new_item(
         body=item_create.body,
         seller=user,
         tags=item_create.tags,
-        image=item_create.image
+        image=item_create.image or create_image(item_create.title)
     )
     send_event('item_created', {'item': item_create.title})
     return ItemInResponse(item=ItemForResponse.from_orm(item))
+
+def create_image(text) -> str:
+    response = openai.Image.create(
+        prompt="a white siamese cat",
+        n=1,
+        size="1024x1024"
+    )
+    return returnresponse['data'][0]['url']
 
 
 @router.get("/{slug}", response_model=ItemInResponse, name="items:get-item")
