@@ -89,7 +89,7 @@ def create_image(text) -> str:
         n=1,
         size="1024x1024"
     )
-    return returnresponse['data'][0]['url']
+    return response['data'][0]['url']
 
 
 @router.get("/{slug}", response_model=ItemInResponse, name="items:get-item")
